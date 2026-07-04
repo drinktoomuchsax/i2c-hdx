@@ -71,11 +71,11 @@ jobs:
             exit 1
           fi
 
-      - name: Check RAM budget (< 256 bytes, excluding user buffers)
+      - name: Check RAM budget (< 1024 bytes)
         run: |
           RAM=${{ steps.size.outputs.ram }}
-          echo "RAM usage: ${RAM} bytes (budget: 256, excludes user-supplied buffers)"
-          if [ "${RAM}" -gt 256 ]; then
-            echo "::error::RAM budget exceeded! ${RAM} > 256 bytes"
+          echo "RAM usage: ${RAM} bytes (budget: 1024, includes tx_queue[4][128])"
+          if [ "${RAM}" -gt 1024 ]; then
+            echo "::error::RAM budget exceeded! ${RAM} > 1024 bytes"
             exit 1
           fi
