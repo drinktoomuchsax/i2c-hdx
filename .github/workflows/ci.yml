@@ -80,6 +80,19 @@ jobs:
             exit 1
           fi
 
+  rpi-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM Linux cross-compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Cross-compile Raspberry Pi example (aarch64)
+        run: |
+          cd examples/rpi_master
+          make CC=aarch64-linux-gnu-gcc
+
   bandwidth:
     runs-on: ubuntu-latest
     steps:
