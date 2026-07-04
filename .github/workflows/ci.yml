@@ -14,3 +14,68 @@ jobs:
 
       - name: Build and run tests
         run: make test
+
+  sanitizer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and run tests with ASan + UBSan
+        run: make test CFLAGS="-Wall -Wextra -std=c99 -I src -I third_party/unity -I test -fsanitize=address,undefined -fno-sanitize-recover=all -g"
+
+  arm-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Cross-compile for ARM Cortex-M
+        run: |
+          mkdir -p build
+          arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -Wall -Wextra -std=c99 \
+            -I src -ffreestanding -nostdlib \
+            -c src/i2c_hdx_master.c -o build/i2c_hdx_master.o
+          arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -Wall -Wextra -std=c99 \
+            -I src -ffreestanding -nostdlib \
+            -c src/i2c_hdx_slave.c -o build/i2c_hdx_slave.o
+        env:
+          CFLAGS: ""
+
+      - name: Size report
+        id: size
+        run: |
+          arm-none-eabi-size build/i2c_hdx_master.o build/i2c_hdx_slave.o
+          echo "## Size Report (ARM Cortex-M4)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          arm-none-eabi-size build/i2c_hdx_master.o build/i2c_hdx_slave.o >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          TOTAL_TEXT=$(arm-none-eabi-size -t build/i2c_hdx_master.o build/i2c_hdx_slave.o | tail -1 | awk '{print $1}')
+          TOTAL_DATA=$(arm-none-eabi-size -t build/i2c_hdx_master.o build/i2c_hdx_slave.o | tail -1 | awk '{print $2}')
+          TOTAL_BSS=$(arm-none-eabi-size -t build/i2c_hdx_master.o build/i2c_hdx_slave.o | tail -1 | awk '{print $3}')
+          FLASH=$((TOTAL_TEXT + TOTAL_DATA))
+          RAM=$((TOTAL_DATA + TOTAL_BSS))
+          echo "flash=${FLASH}" >> $GITHUB_OUTPUT
+          echo "ram=${RAM}" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Flash (text+data): ${FLASH} bytes**" >> $GITHUB_STEP_SUMMARY
+          echo "**RAM (data+bss): ${RAM} bytes**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check Flash budget (< 1024 bytes)
+        run: |
+          FLASH=${{ steps.size.outputs.flash }}
+          echo "Flash usage: ${FLASH} bytes (budget: 1024)"
+          if [ "${FLASH}" -gt 1024 ]; then
+            echo "::error::Flash budget exceeded! ${FLASH} > 1024 bytes"
+            exit 1
+          fi
+
+      - name: Check RAM budget (< 256 bytes, excluding user buffers)
+        run: |
+          RAM=${{ steps.size.outputs.ram }}
+          echo "RAM usage: ${RAM} bytes (budget: 256, excludes user-supplied buffers)"
+          if [ "${RAM}" -gt 256 ]; then
+            echo "::error::RAM budget exceeded! ${RAM} > 256 bytes"
+            exit 1
+          fi
