@@ -21,9 +21,9 @@
 #define I2C_HDX_POLL_INTERVAL_MS 10
 #endif
 
-/* Master 单次 read 最大长度 */
+/* Master 单次 read 最大长度: STATUS(1) + LEN(2) + PAYLOAD(N) + SUM(1) */
 #ifndef I2C_HDX_MAX_READ_SIZE
-#define I2C_HDX_MAX_READ_SIZE (1 + I2C_HDX_TX_BUF_SIZE)
+#define I2C_HDX_MAX_READ_SIZE (1 + 2 + I2C_HDX_TX_BUF_SIZE + 1)
 #endif
 
 #endif /* I2C_HDX_CONFIG_H */

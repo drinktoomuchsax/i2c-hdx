@@ -12,7 +12,7 @@ BUILD_DIR = build
 
 all: test
 
-test: test_checksum test_master test_slave test_loopback
+test: test_checksum test_master test_slave test_loopback test_e2e test_robustness
 	@echo "--- Running test_checksum ---"
 	@$(BUILD_DIR)/test_checksum
 	@echo ""
@@ -24,6 +24,12 @@ test: test_checksum test_master test_slave test_loopback
 	@echo ""
 	@echo "--- Running test_loopback ---"
 	@$(BUILD_DIR)/test_loopback
+	@echo ""
+	@echo "--- Running test_e2e ---"
+	@$(BUILD_DIR)/test_e2e
+	@echo ""
+	@echo "--- Running test_robustness ---"
+	@$(BUILD_DIR)/test_robustness
 	@echo ""
 	@echo "All tests passed."
 
@@ -38,6 +44,12 @@ test_slave: $(BUILD_DIR)
 
 test_loopback: $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test_loopback test/test_loopback.c $(SRC_MASTER) $(SRC_SLAVE) $(MOCK_PORT) $(UNITY_SRC)
+
+test_e2e: $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test_e2e test/test_e2e.c $(SRC_MASTER) $(SRC_SLAVE) $(MOCK_PORT) $(UNITY_SRC)
+
+test_robustness: $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test_robustness test/test_robustness.c $(SRC_MASTER) $(SRC_SLAVE) $(MOCK_PORT) $(UNITY_SRC)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
