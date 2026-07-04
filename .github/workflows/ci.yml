@@ -79,3 +79,17 @@ jobs:
             echo "::error::RAM budget exceeded! ${RAM} > 1024 bytes"
             exit 1
           fi
+
+  bandwidth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bandwidth report (100kHz, 1 empty poll)
+        run: python3 scripts/bandwidth_report.py 1
+
+      - name: Bandwidth report (100kHz, 0 empty polls - best case)
+        run: python3 scripts/bandwidth_report.py 0
+
+      - name: Bandwidth report (100kHz, 3 empty polls - worst case)
+        run: python3 scripts/bandwidth_report.py 3
