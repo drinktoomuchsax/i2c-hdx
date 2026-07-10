@@ -6,3 +6,7 @@ build/
 *.map
 .vscode/
 .idea/
+
+# built example binaries
+examples/rpi_master/i2c_hdx_master_demo
+examples/rpi_master/i2c_hdx_master_tool

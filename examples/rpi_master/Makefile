@@ -1,18 +1,23 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -I ../../src
 
-TARGET = i2c_hdx_master_demo
+DEMO = i2c_hdx_master_demo
+TOOL = i2c_hdx_master_tool
 
-SRCS = main.c \
-       i2c_hdx_port_linux.c \
-       ../../src/i2c_hdx_master.c
+PORT_SRCS = i2c_hdx_port_linux.c ../../src/i2c_hdx_master.c
+
+DEMO_SRCS = main.c $(PORT_SRCS)
+TOOL_SRCS = i2c_hdx_tool.c $(PORT_SRCS)
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: $(DEMO) $(TOOL)
 
-$(TARGET): $(SRCS)
+$(DEMO): $(DEMO_SRCS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(TOOL): $(TOOL_SRCS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(DEMO) $(TOOL)
